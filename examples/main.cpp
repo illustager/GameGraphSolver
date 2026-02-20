@@ -8,7 +8,7 @@ using namespace std;
 int main() {
 	GameGraphSolver graph;
 
-	graph.build_graph(Position::get_initial_positions());
+	graph.build_graph(Position::get_starting_positions());
 	graph.color_graph();
 
 	auto positions = graph.get_positions();

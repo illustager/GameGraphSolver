@@ -77,10 +77,10 @@ optional<size_t> GameGraphSolver::index_of(const PositionBase* pos) const {
 	return it->second;
 }
 
-void GameGraphSolver::build_graph(vector<PositionBaseUniquePtr> initial_positions) {
+void GameGraphSolver::build_graph(vector<PositionBaseUniquePtr> starting_positions) {
 	queue<size_t> q;
 
-	for (auto& pos : initial_positions) {
+	for (auto& pos : starting_positions) {
 		bool is_new_node;
 		size_t u = add_node(move(pos), is_new_node);
 		q.emplace(u);

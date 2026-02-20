@@ -36,7 +36,7 @@ public:
 		return curr < pos->curr;
 	}
 
-	static std::vector<unique_ptr> get_initial_positions() {
+	static std::vector<unique_ptr> get_starting_positions() {
 		std::vector<unique_ptr> results;
 		results.emplace_back(std::make_unique<Position>(0));
 		return results;

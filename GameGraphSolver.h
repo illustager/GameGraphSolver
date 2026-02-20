@@ -42,7 +42,7 @@ public:
 	GameGraphSolver() = default;
 	~GameGraphSolver() = default;
 
-	void build_graph(std::vector<PositionBaseUniquePtr> initial_positions);
+	void build_graph(std::vector<PositionBaseUniquePtr> starting_positions);
 	void color_graph();
 
 	PT get_position_type(const PositionBase& pos) const;
