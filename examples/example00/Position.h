@@ -2,6 +2,8 @@
 
 #include "GameGraphPositionBase.h"
 
+#include <iostream>
+
 class Position : public GameGraphPositionBase {
 public:
 	Position() = delete;

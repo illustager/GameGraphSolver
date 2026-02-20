@@ -1,13 +1,11 @@
-#include <bits/stdc++.h>
+#include <iostream>
 
 using namespace std;
 
-#include "../GameGraphSolver.h"
+#include "GameGraphSolver.h"
 #include "Position.h"
 
 int main() {
-	// using Position = Position<5, 30>;
-
 	GameGraphSolver graph;
 
 	graph.build_graph(Position::get_initial_positions());

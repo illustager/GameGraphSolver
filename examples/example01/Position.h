@@ -2,6 +2,8 @@
 
 #include "GameGraphPositionBase.h"
 
+#include <iostream>
+
 template<unsigned N, unsigned M>
 class TPosition : public GameGraphPositionBase {
 public:

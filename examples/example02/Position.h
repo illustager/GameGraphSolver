@@ -6,6 +6,7 @@
 #include <array>
 #include <iostream>
 #include <utility>
+#include <iostream>
 
 class Position : public GameGraphPositionBase {
 public:
