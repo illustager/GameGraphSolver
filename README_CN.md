@@ -56,6 +56,8 @@ bool is_draw(const PositionBase* position) const;
 - **UNDETERMINED**：当前局面没有被染色（请检查是否执行了 `color_graph` 方法）；
 - **INVALID**：当前局面不是游戏中可能出现的局面（请检查局面是否合法，或者是否执行了 `build_graph` 方法）。
 
+除去 UNDETERMINED 和 INVALID，前五种局面是按对于先手而言从劣到优的顺序排列的。这意味着对于两个已经被染色的合法局面，可以通过 `operator<` 和 `operator>` 比较二者的 PositionType 来判断哪个局面更有利。
+
 我没有系统学习过博弈论。据我所知，P-Position 和 N-Position 是博弈论中真实存在的术语，而其它称呼是我编程时临时使用的；如果对于上述含义对应有更符合习惯的术语，请让我知道。
 
 ## 理论

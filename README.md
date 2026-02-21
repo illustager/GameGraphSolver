@@ -58,6 +58,8 @@ These methods are self-explanatory: `build_graph` and `color_graph` build and co
 - **UNDETERMINED**: The position has not been classified yet (make sure to call `color_graph`).
 - **INVALID**: The position is not recognized as a valid position in the game (check position legality or ensure `build_graph` was called).
 
+Except for `UNDETERMINED` and `INVALID`, the five position types are ordered by favorability to the first player. For any two classified legal positions, you can compare their `PositionType` values using `operator<` and `operator>` to determine which position is more advantageous for the first player.
+
 I have not systematically studied game theory. To my knowledge, "P-Position" and "N-Position" are standard terms in game theory, while the other names are ones I came up with while programming; if there are more standard terms for these cases, please let me know.
 
 ## Theory
