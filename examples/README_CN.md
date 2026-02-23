@@ -54,7 +54,7 @@ graph TD;
 
 这个游戏在我上小学时非常流行，几乎是我们这代人的童年记忆。事实上这个项目最早也是为了这个游戏而写的——当时我正陪 sageblue 乘坐 1h 的地铁前往他的学校，为了帮他就他的期末成绩找老师申诉。路上百无聊赖的我们玩起了这个游戏，这时候 sageblue 突然问我，这个游戏是否存在必胜策略。
 
-设计 `Position` 类（派生自 `GameGraphPositionBase`）的朴素方法是：定义两个无序对分别表示游戏双方的状态，然后定义成员 `Turn` 表示本回合行动方。但这样会增添大量重复的局面，从而造成浪费，因为按照定义，我们不关心当前局面谁是先手，我们只关系先手玩家和后手玩家各自的状态。例如，局面 $Alice=\left\{0,1\right\}, Bob=\left\{9,9\right\}, Turn=Alice$ 和局面 $Alice=\left\{9,9\right\}, Bob=\left\{0,1\right\}, Turn=Bob$ 完全可以视作相同的局面，即 $FirstPlayer=\left\{0,1\right\}, SecondPlayer=\left\{9,9\right\}$.
+设计 `Position` 类（派生自 `GameGraphPositionBase`）的朴素方法是：定义两个无序对分别表示游戏双方的状态，然后定义成员 `Turn` 表示本回合行动方。但这样会增添大量重复的局面，从而造成浪费，因为按照定义，我们不关心当前局面谁是先手，我们只关系先手玩家和后手玩家各自的状态。例如，局面 $Alice=\{0,1\}, Bob=\{9,9\}, Turn=Alice$ 和局面 $Alice=\{9,9\}, Bob=\{0,1\}, Turn=Bob$ 完全可以视作相同的局面，即 $FirstPlayer=\{0,1\}, SecondPlayer=\{9,9\}$.
 
 因此 `Position` 类的成员变量只需包含两个无序对，分别表示当前局面先手玩家（当前行动方）和后手玩家（下一回合行动方），并在本回合行动后（即 `get_next_positions` 方法）交换两个无序对。
 
