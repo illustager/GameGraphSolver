@@ -13,22 +13,22 @@ public:
 
 	std::vector<unique_ptr> get_next_positions() const override {		
 		switch (curr) {
-			case 0: return make_position_vector(1, 8);
-			case 1: return make_position_vector(1, 2);
-			case 2: return make_position_vector(3);
-			case 3: return make_position_vector(4, 6);
-			case 4: return make_position_vector(5);
-			case 5: return make_position_vector(4);
-			case 6: return make_position_vector(7);
-			case 7: return {};
-			case 8: return make_position_vector(3, 8);
+			case 0: return make_position_vector(1, 2);
+			case 1: return make_position_vector(1, 3);
+			case 2: return make_position_vector(2, 4);
+			case 3: return make_position_vector(4);
+			case 4: return make_position_vector(5, 6);
+			case 5: return make_position_vector(7);
+			case 6: return make_position_vector(8);
+			case 7: return make_position_vector(5);
+			case 8: return {};
 			
 			default: return {};
 		}
 	}
 
 	bool is_terminal() const override {
-		return curr == 7;
+		return curr == 8;
 	}
 
 	bool less(const GameGraphPositionBase* rhs) const override {
