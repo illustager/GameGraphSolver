@@ -73,7 +73,7 @@ bool is_draw(const PositionBase* position) const;
 4. 由全部 Undefined-Position 导出的子图中的 NTSSCC 上的点是 T-Position；
 5. 邻接且只邻接 T-Position 的节点是 T-Position；
 6. 邻接 PT-Position 的节点是 NT-Position；
-7. 邻接且只邻接 N-Position，NT-Position 或 T-Position，且不只邻接 T-Position 的节点是 PT-Position。
+7. 邻接且只邻接 N-Position，NT-Position 或 T-Position，且不只邻接 T-Position, 且不只邻接 N-Position 的节点是 PT-Position。
 
 这里的 NTSSCC 是指至少满足以下条件之一的 Sink SCC：
 

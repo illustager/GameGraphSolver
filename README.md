@@ -75,7 +75,7 @@ If the finite directed graph contains cycles, some positions may not be classifi
 4. In the subgraph induced by all Undefined-Positions, nodes in NTSSCCs are T-Positions;
 5. Any node adjacent only to T-Positions is a T-Position;
 6. Any node adjacent to a PT-Position is an NT-Position;
-7. Any node adjacent only to N-, NT-, or T-Position, but not solely T-Position, is a PT-Position.
+7. Any node adjacent only to N-, NT-, or T-Position, and not solely to T-Positions or solely to N-Positions, is a PT-Position.
 
 Here, an NTSSCC is a sink strongly connected component that:
 - Contains more than one node, or
