@@ -7,6 +7,7 @@
 #include <stack>
 #include <optional>
 #include <iostream>
+#include <queue>
 
 class GameGraphSolver {
 	using PositionBase			= GameGraphPositionBase;
@@ -59,15 +60,17 @@ public:
 private:
 	std::optional<std::size_t> index_of(const PositionBase* pos) const;
 
-	bool color_well_defined_nodes();
-	bool color_sink_sccs();
-	bool color_undetermined_nodes();
+	void color_terminals(std::queue<std::size_t>& q);
+	void color_by_basic_rules();
+	void color_node_in_trivial_sink_scc(std::size_t node, std::queue<std::size_t>& q);
+	void color_sink_sccs(std::queue<std::size_t>& q);
+	bool color_by_extended_rules(bool t_positions_are_draw);
 
 	std::size_t add_node(PositionBaseUniquePtr node, bool& is_new_node);
 	void add_edge(std::size_t u, std::size_t v);
-	void color_node(std::size_t u, PT type);
+	void color_node(std::size_t node, PT type);
 
-	bool has_self_loop(std::size_t u) const;
+	bool has_self_loop(std::size_t node) const;
 
 	void tarjan_helper(std::size_t node,
 	                   std::vector<int>& index_map,
@@ -90,6 +93,12 @@ private:
 	std::map<const PositionBase*, std::size_t, PositionBase::Less>	node_indices_;
 	std::vector<std::size_t>										terminals_;
 	std::vector<std::vector<std::size_t>>							adj_;
+	std::vector<std::vector<std::size_t>>							rev_adj_;
+	std::vector<std::size_t>										num_n_children;
+	std::vector<std::size_t>										num_t_children;
+	std::vector<std::size_t>										num_nt_children;
+	std::vector<bool>												has_p_child;
+	std::vector<bool>												has_pt_child;
 	std::vector<PositionType>										types_;
 	std::vector<bool>												is_draw_;
 	std::vector<bool>												has_self_loop_;

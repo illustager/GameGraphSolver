@@ -4,8 +4,6 @@ using PT					= GameGraphSolver::PositionType;
 using PositionBase			= GameGraphPositionBase;
 using PositionBaseUniquePtr	= std::unique_ptr<PositionBase>;
 
-#include <queue>
-
 using namespace std;
 
 GameGraphSolver::PT GameGraphSolver::get_position_type(const PositionBase& pos) const {
@@ -110,29 +108,22 @@ void GameGraphSolver::build_graph(vector<PositionBaseUniquePtr> starting_positio
 
 	num_nodes_ = nodes_.size();
 	adj_.resize(num_nodes_);
+	rev_adj_.resize(num_nodes_);
+	num_n_children.resize(num_nodes_, 0);
+	num_t_children.resize(num_nodes_, 0);
+	num_nt_children.resize(num_nodes_, 0);
+	has_p_child.resize(num_nodes_, false);
+	has_pt_child.resize(num_nodes_, false);
 	types_.resize(num_nodes_, PT::UNDETERMINED);
 	is_draw_.resize(num_nodes_, false);
 	has_self_loop_.resize(num_nodes_, false);
 }
 
 void GameGraphSolver::color_graph() {
-	color_sink_sccs();
-	for (size_t u = 0; u < num_nodes_; ++u) {
-		if (types_.at(u) == PT::T_POSITION) {
-			is_draw_.at(u) = true;
-		}
-		else {
-			is_draw_.at(u) = false;
-		}
-	}
-
-	color_well_defined_nodes();
-
-	bool changed = true;
-	while (changed) {
-		changed = false;
-		changed |= color_sink_sccs();
-		changed |= color_undetermined_nodes();
+	color_by_extended_rules(true);
+	color_by_basic_rules();
+	while (color_by_extended_rules(false)) {
+		;
 	}
 }
 
@@ -157,6 +148,11 @@ void GameGraphSolver::add_edge(size_t u, size_t v) {
 	}
 	adj_.at(u).emplace_back(v);
 
+	if (rev_adj_.size() <= v) {
+		rev_adj_.resize(v + 1);
+	}
+	rev_adj_.at(v).emplace_back(u);
+
 	if (has_self_loop_.size() <= u) {
 		has_self_loop_.resize(u + 1, false);
 	}
@@ -165,63 +161,68 @@ void GameGraphSolver::add_edge(size_t u, size_t v) {
 	}
 }
 
-void GameGraphSolver::color_node(size_t u, PT type) {
-	types_.at(u) = type;
+void GameGraphSolver::color_node(size_t node, PT type) {
+	types_.at(node) = type;
 }
 
-bool GameGraphSolver::has_self_loop(size_t u) const {
-	return has_self_loop_.at(u);
+bool GameGraphSolver::has_self_loop(size_t node) const {
+	return has_self_loop_.at(node);
 }
 
-bool GameGraphSolver::color_well_defined_nodes() {
-	bool any_colored = false;
-
-	for (size_t terminal : terminals_) {
-		color_node(terminal, PT::P_POSITION);
-		any_colored = true;
+void GameGraphSolver::color_terminals(queue<size_t>& q) {
+	for (size_t t : terminals_) {
+		color_node(t, PT::P_POSITION);
+		q.emplace(t);
 	}
+}
 
-	bool changed = true;
-	while (changed) {
-		changed = false;
+void GameGraphSolver::color_by_basic_rules() {
+	std::queue<std::size_t> q;
 
-		for (size_t u = 0; u < num_nodes_; ++u) {
-			if (types_.at(u) != PT::UNDETERMINED) {
+	color_terminals(q);
+
+	while (!q.empty()) {
+		size_t node = q.front();
+		q.pop();
+
+		for (size_t parent : rev_adj_.at(node)) {
+			if (types_.at(parent) != PT::UNDETERMINED) {
 				continue;
 			}
 
-			bool has_p_position_child = false;
-			bool all_n_position_children = true;
-
-			for (size_t child : adj_.at(u)) {
-				if (types_.at(child) == PT::P_POSITION) {
-					has_p_position_child = true;
-					break;
-				}
-				if (types_.at(child) != PT::N_POSITION) {
-					all_n_position_children = false;
-				}
+			if (types_.at(node) == PT::P_POSITION) {
+				color_node(parent, PT::N_POSITION);
+				q.emplace(parent);
 			}
+			else { // node is N-POSITION
+				num_n_children.at(parent) += 1;
 
-			if (has_p_position_child) {
-				color_node(u, PT::N_POSITION);
-				changed = true;
-			}
-			else if (all_n_position_children) {
-				color_node(u, PT::P_POSITION);
-				changed = true;
+				if (num_n_children.at(parent) == adj_.at(parent).size()) {
+					color_node(parent, PT::P_POSITION);
+					q.emplace(parent);
+				}
 			}
 		}
-
-		any_colored |= changed;
 	}
-
-	return any_colored;
 }
 
-bool GameGraphSolver::color_sink_sccs() {
-	bool any_colored = false;
+void GameGraphSolver::color_node_in_trivial_sink_scc(size_t node, queue<size_t>& q) {
+	if (adj_.at(node).empty()) {
+		;
+	}
+	else if (num_t_children.at(node) == adj_.at(node).size()) {
+		color_node(node, PT::T_POSITION);
+		q.emplace(node);
+	}
+	else if (num_t_children.at(node)
+	       + num_nt_children.at(node)
+		   + num_n_children.at(node) == adj_.at(node).size()) {
+		color_node(node, PT::PT_POSITION);
+		q.emplace(node);
+	}
+}
 
+void GameGraphSolver::color_sink_sccs(queue<size_t>& q) {
 	size_t					scc_count = 0;
 	vector<size_t>			scc_map(num_nodes_);
 	vector<vector<size_t>>	scc_nodes;
@@ -235,71 +236,69 @@ bool GameGraphSolver::color_sink_sccs() {
 			
 			if (nodes_in_scc.size() == 1) {
 				if (!has_self_loop(nodes_in_scc[0])) {
+					color_node_in_trivial_sink_scc(nodes_in_scc[0], q);
 					continue;
 				}
 			}
 
-			for (size_t u : nodes_in_scc) {
-				color_node(u, PT::T_POSITION);
-				any_colored = true;
+			for (size_t node : nodes_in_scc) {
+				color_node(node, PT::T_POSITION);
+				q.emplace(node);
 			}
 		}
 	}
-	
-	return any_colored;
 }
 
-bool GameGraphSolver::color_undetermined_nodes() {
-	bool any_colored = false;
+bool GameGraphSolver::color_by_extended_rules(bool t_positions_are_draw) {
+	bool changed = false;
+	
+	queue<size_t> q;
 
-	bool changed = true;
-	while (changed) {
-		changed = false;
+	color_sink_sccs(q);
 
-		for (size_t u = 0; u < num_nodes_; ++u) {
-			if (types_.at(u) != PT::UNDETERMINED) {
+	while (!q.empty()) {
+		size_t node = q.front();
+		q.pop();
+
+		if (t_positions_are_draw) {
+			is_draw_.at(node) = true;
+		}
+
+		for (size_t parent : rev_adj_.at(node)) {
+			if (types_.at(parent) != PT::UNDETERMINED) {
 				continue;
 			}
 
-			bool all_t_position_children = true;
-			bool all_not_p_position_children = true;
-			bool has_pt_position_child = false;
-
-			for (size_t child : adj_.at(u)) {
-				if (types_.at(child) == PT::P_POSITION
-				 || types_.at(child) == PT::PT_POSITION) {
-					has_pt_position_child = true;
-					break;
-				}
-
-				if (types_.at(child) != PT::T_POSITION) {
-					all_t_position_children = false;
-				}
-				if (types_.at(child) != PT::N_POSITION
-				 && types_.at(child) != PT::T_POSITION
-				 && types_.at(child) != PT::NT_POSITION) {
-					all_not_p_position_children = false;
-				}
-			}
-
-			if (has_pt_position_child) {
-				color_node(u, PT::NT_POSITION);
+			if (types_.at(node) == PT::PT_POSITION) {
+				color_node(parent, PT::NT_POSITION);
+				q.emplace(parent);
 				changed = true;
 			}
-			else if (all_t_position_children) {
-				color_node(u, PT::T_POSITION);
-				changed = true;
-			}
-			else if (all_not_p_position_children) {
-				color_node(u, PT::PT_POSITION);
-				changed = true;
+			else {	// node is T-POSITION or NT-POSITION
+				if (types_.at(node) == PT::T_POSITION) {
+					num_t_children.at(parent) += 1;
+				}
+				else {
+					num_nt_children.at(parent) += 1;
+				}
+
+				if (num_t_children.at(parent) == adj_.at(parent).size()) {
+					color_node(parent, PT::T_POSITION);
+					q.emplace(parent);
+					changed = true;
+				}
+				else if (num_t_children.at(parent)
+				       + num_nt_children.at(parent)
+					   + num_n_children.at(parent) == adj_.at(parent).size()) {
+					color_node(parent, PT::PT_POSITION);
+					q.emplace(parent);
+					changed = true;
+				}
 			}
 		}
-
-		any_colored |= changed;
 	}
 
-	return any_colored;
+	return changed;
 }
 
 void GameGraphSolver::tarjan_helper(size_t node,
