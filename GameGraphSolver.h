@@ -75,11 +75,11 @@ private:
 	                   std::stack<std::size_t>& S,
 	                   std::vector<bool>& on_stack,
 	                   int& index,
-					   size_t& scc_count,
+					   std::size_t& scc_count,
 					   std::vector<std::size_t>& scc_map,
 					   std::vector<std::vector<std::size_t>>& scc_nodes) const;
 
-	void tarjan_undetermined_nodes(size_t& scc_count,
+	void tarjan_undetermined_nodes(std::size_t& scc_count,
 								   std::vector<std::size_t>& scc_map,
 								   std::vector<std::vector<std::size_t>>& scc_nodes,
 								   std::vector<std::vector<std::size_t>>& scc_adj) const;
@@ -88,7 +88,7 @@ private:
 	std::size_t														num_nodes_;
 	std::vector<PositionBaseUniquePtr>								nodes_;
 	std::map<const PositionBase*, std::size_t, PositionBase::Less>	node_indices_;
-	std::vector<size_t>												terminals_;
+	std::vector<std::size_t>										terminals_;
 	std::vector<std::vector<std::size_t>>							adj_;
 	std::vector<PositionType>										types_;
 	std::vector<bool>												is_draw_;
