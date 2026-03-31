@@ -6,7 +6,7 @@
 
 ## 用法
 
-可以参考 [examples/](examples/) 目录下给出的示例和 README 文档。
+可以参考 [tests/](tests/) 目录下给出的测试用例和说明文档。
 
 首先，根据具体的游戏，定义一个 `GameGraphPositionBase` 的派生类（假设是 `CustomPosition`），并重载以下纯虚方法。这个派生类用于实现对游戏中局面的建模，因此它必须包含所有能够确定一个游戏局面的信息。不等值的 `CustomPosition` 实例对应游戏中的不同局面；相等的实例则表示相同的局面。
 

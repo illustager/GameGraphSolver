@@ -8,7 +8,7 @@ This project processes **perfect-information**,  turn-based games using a **naiv
 
 ## Usage
 
-See the [examples/](examples/) directory there for usage samples.
+See the [tests/](tests/) directory there for usage examples.
 
 To use this library, define a subclass of `GameGraphPositionBase` that models the positions of your specific game (for example, `CustomPosition`), and override the following pure virtual methods. Each instance of your subclass should represent a unique game state: unequal instances represent different positions; equal instances, the same position.
 
