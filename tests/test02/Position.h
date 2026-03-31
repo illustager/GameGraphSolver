@@ -14,7 +14,7 @@ public:
 
 	std::vector<unique_ptr> get_next_positions() const override {
 		std::vector<unique_ptr> results;
-		for (int i = 1; i <= N; ++i) {
+		for (unsigned i = 1; i <= N; ++i) {
 			unsigned next = curr + i;
 			if (next > M + 1) {
 				break;
