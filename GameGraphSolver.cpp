@@ -1,5 +1,11 @@
 #include "GameGraphSolver.h"
 
+#ifdef NDEBUG
+#define AT(v, i) (v)[i]
+#else
+#define AT(v, i) (v).at(i)
+#endif
+
 using PT					= GameGraphSolver::PositionType;
 using PositionBase			= GameGraphPositionBase;
 using PositionBaseUniquePtr	= std::unique_ptr<PositionBase>;
@@ -13,7 +19,7 @@ GameGraphSolver::PT GameGraphSolver::get_position_type(const PositionBase& pos) 
 GameGraphSolver::PT GameGraphSolver::get_position_type(const PositionBase* pos) const {
 	auto idx = index_of(pos);
 	if (idx.has_value()) {
-		return types_.at(idx.value());
+		return AT(types_, idx.value());
 	}
 	else {
 		return PositionType::INVALID;
@@ -23,7 +29,7 @@ GameGraphSolver::PT GameGraphSolver::get_position_type(const PositionBase* pos) 
 vector<const PositionBase*> GameGraphSolver::get_positions() const {
 	vector<const PositionBase*> results;
 	for (size_t u = 0; u < num_nodes_; ++u) {
-		results.emplace_back(nodes_.at(u).get());
+		results.emplace_back(AT(nodes_, u).get());
 	}
 	return results;
 }
@@ -31,7 +37,7 @@ vector<const PositionBase*> GameGraphSolver::get_positions() const {
 vector<const PositionBase*> GameGraphSolver::get_terminals() const {
 	vector<const PositionBase*> results;
 	for (size_t u : terminals_) {
-		results.emplace_back(nodes_.at(u).get());
+		results.emplace_back(AT(nodes_, u).get());
 	}
 	return results;
 }
@@ -43,9 +49,9 @@ vector<const PositionBase*> GameGraphSolver::get_adjacent_positions(const Positi
 	}
 	
 	vector<const PositionBase*> results;
-	const auto& neighbors = adj_.at(idx.value());
+	const auto& neighbors = AT(adj_, idx.value());
 	for (size_t u : neighbors) {
-		results.emplace_back(nodes_.at(u).get());
+		results.emplace_back(AT(nodes_, u).get());
 	}
 	return results;
 }
@@ -60,7 +66,7 @@ bool GameGraphSolver::is_draw(const PositionBase* pos) const {
 		return false;
 	}
 
-	return is_draw_.at(idx.value());
+	return AT(is_draw_, idx.value());
 }
 
 bool GameGraphSolver::is_draw(const PositionBase& pos) const {
@@ -88,7 +94,7 @@ void GameGraphSolver::build_graph(vector<PositionBaseUniquePtr> starting_positio
 		size_t u = q.front();
 		q.pop();
 
-		auto next_positions = nodes_.at(u)->get_next_positions();
+		auto next_positions = AT(nodes_, u)->get_next_positions();
 
 		for (auto& next : next_positions) {
 			bool is_new_node;
@@ -96,7 +102,7 @@ void GameGraphSolver::build_graph(vector<PositionBaseUniquePtr> starting_positio
 			add_edge(u, v);
 			
 			if (is_new_node) {
-				if (nodes_.at(v)->is_terminal()) {
+				if (AT(nodes_, v)->is_terminal()) {
 					terminals_.emplace_back(v);
 				}
 				else {
@@ -146,27 +152,27 @@ void GameGraphSolver::add_edge(size_t u, size_t v) {
 	if (adj_.size() <= u) {
 		adj_.resize(u + 1);
 	}
-	adj_.at(u).emplace_back(v);
+	AT(adj_, u).emplace_back(v);
 
 	if (rev_adj_.size() <= v) {
 		rev_adj_.resize(v + 1);
 	}
-	rev_adj_.at(v).emplace_back(u);
+	AT(rev_adj_, v).emplace_back(u);
 
 	if (has_self_loop_.size() <= u) {
 		has_self_loop_.resize(u + 1, false);
 	}
 	if (u == v) {
-		has_self_loop_.at(u) = true;
+		AT(has_self_loop_, u) = true;
 	}
 }
 
 void GameGraphSolver::color_node(size_t node, PT type) {
-	types_.at(node) = type;
+	AT(types_, node) = type;
 }
 
 bool GameGraphSolver::has_self_loop(size_t node) const {
-	return has_self_loop_.at(node);
+	return AT(has_self_loop_, node);
 }
 
 void GameGraphSolver::color_terminals(queue<size_t>& q) {
@@ -185,20 +191,20 @@ void GameGraphSolver::color_by_basic_rules() {
 		size_t node = q.front();
 		q.pop();
 
-		for (size_t parent : rev_adj_.at(node)) {
-			if (types_.at(parent) != PT::UNDETERMINED) {
+		for (size_t parent : AT(rev_adj_, node)) {
+			if (AT(types_, parent) != PT::UNDETERMINED) {
 				continue;
 			}
 
-			if (types_.at(node) == PT::P_POSITION) {
-				color_node(parent, PT::N_POSITION);
+			if (AT(types_, node) == PT::P_POSITION) {
+				AT(types_, parent) = PT::N_POSITION;
 				q.emplace(parent);
 			}
 			else { // node is N-POSITION
-				num_n_children.at(parent) += 1;
+				AT(num_n_children, parent) += 1;
 
-				if (num_n_children.at(parent) == adj_.at(parent).size()) {
-					color_node(parent, PT::P_POSITION);
+				if (AT(num_n_children, parent) == AT(adj_, parent).size()) {
+					AT(types_, parent) = PT::P_POSITION;
 					q.emplace(parent);
 				}
 			}
@@ -207,17 +213,17 @@ void GameGraphSolver::color_by_basic_rules() {
 }
 
 void GameGraphSolver::color_node_in_trivial_sink_scc(size_t node, queue<size_t>& q) {
-	if (adj_.at(node).empty()) {
+	if (AT(adj_, node).empty()) {
 		;
 	}
-	else if (num_t_children.at(node) == adj_.at(node).size()) {
-		color_node(node, PT::T_POSITION);
+	else if (AT(num_t_children, node) == AT(adj_, node).size()) {
+		AT(types_, node) = PT::T_POSITION;
 		q.emplace(node);
 	}
-	else if (num_t_children.at(node)
-	       + num_nt_children.at(node)
-		   + num_n_children.at(node) == adj_.at(node).size()) {
-		color_node(node, PT::PT_POSITION);
+	else if (AT(num_t_children, node)
+	       + AT(num_nt_children, node)
+		   + AT(num_n_children, node) == AT(adj_, node).size()) {
+		AT(types_, node) = PT::PT_POSITION;
 		q.emplace(node);
 	}
 }
@@ -231,8 +237,8 @@ void GameGraphSolver::color_sink_sccs(queue<size_t>& q) {
 	tarjan_undetermined_nodes(scc_count, scc_map, scc_nodes, scc_adj);
 
 	for (size_t scc_id = 0; scc_id < scc_count; ++scc_id) {
-		if (scc_adj.at(scc_id).empty()) {
-			const auto& nodes_in_scc = scc_nodes.at(scc_id);
+		if (AT(scc_adj, scc_id).empty()) {
+			const auto& nodes_in_scc = AT(scc_nodes, scc_id);
 			
 			if (nodes_in_scc.size() == 1) {
 				if (!has_self_loop(nodes_in_scc[0])) {
@@ -242,7 +248,7 @@ void GameGraphSolver::color_sink_sccs(queue<size_t>& q) {
 			}
 
 			for (size_t node : nodes_in_scc) {
-				color_node(node, PT::T_POSITION);
+				AT(types_, node) = PT::T_POSITION;
 				q.emplace(node);
 			}
 		}
@@ -261,36 +267,36 @@ bool GameGraphSolver::color_by_extended_rules(bool t_positions_are_draw) {
 		q.pop();
 
 		if (t_positions_are_draw) {
-			is_draw_.at(node) = true;
+			AT(is_draw_, node) = true;
 		}
 
-		for (size_t parent : rev_adj_.at(node)) {
-			if (types_.at(parent) != PT::UNDETERMINED) {
+		for (size_t parent : AT(rev_adj_, node)) {
+			if (AT(types_, parent) != PT::UNDETERMINED) {
 				continue;
 			}
 
-			if (types_.at(node) == PT::PT_POSITION) {
-				color_node(parent, PT::NT_POSITION);
+			if (AT(types_, node) == PT::PT_POSITION) {
+				AT(types_, parent) = PT::NT_POSITION;
 				q.emplace(parent);
 				changed = true;
 			}
 			else {	// node is T-POSITION or NT-POSITION
-				if (types_.at(node) == PT::T_POSITION) {
-					num_t_children.at(parent) += 1;
+				if (AT(types_, node) == PT::T_POSITION) {
+					AT(num_t_children, parent) += 1;
 				}
 				else {
-					num_nt_children.at(parent) += 1;
+					AT(num_nt_children, parent) += 1;
 				}
 
-				if (num_t_children.at(parent) == adj_.at(parent).size()) {
-					color_node(parent, PT::T_POSITION);
+				if (AT(num_t_children, parent) == AT(adj_, parent).size()) {
+					AT(types_, parent) = PT::T_POSITION;
 					q.emplace(parent);
 					changed = true;
 				}
-				else if (num_t_children.at(parent)
-				       + num_nt_children.at(parent)
-					   + num_n_children.at(parent) == adj_.at(parent).size()) {
-					color_node(parent, PT::PT_POSITION);
+				else if (AT(num_t_children, parent)
+				       + AT(num_nt_children, parent)
+					   + AT(num_n_children, parent) == AT(adj_, parent).size()) {
+					AT(types_, parent) = PT::PT_POSITION;
 					q.emplace(parent);
 					changed = true;
 				}
@@ -310,37 +316,37 @@ void GameGraphSolver::tarjan_helper(size_t node,
 									size_t& scc_count,
 									vector<size_t>& scc_map,
 									vector<vector<size_t>>& scc_nodes) const {
-	index_map.at(node) = index;
-	lowlink_map.at(node) = index;
+	AT(index_map, node) = index;
+	AT(lowlink_map, node) = index;
 	++index;
 	S.push(node);
-	on_stack.at(node) = true;
+	AT(on_stack, node) = true;
 
-	for (size_t neighbor : adj_.at(node)) {
-		if (types_.at(neighbor) != PT::UNDETERMINED) {
+	for (size_t neighbor : AT(adj_, node)) {
+		if (AT(types_, neighbor) != PT::UNDETERMINED) {
 			continue;
 		}
 
-		if (index_map.at(neighbor) < 0) {
+		if (AT(index_map, neighbor) < 0) {
 			tarjan_helper(neighbor, index_map, lowlink_map, S, on_stack, index, scc_count, scc_map, scc_nodes);
-			lowlink_map.at(node) = min(lowlink_map.at(node), lowlink_map.at(neighbor));
+			AT(lowlink_map, node) = min(AT(lowlink_map, node), AT(lowlink_map, neighbor));
 		}
-		else if (on_stack.at(neighbor)) {
-			lowlink_map.at(node) = min(lowlink_map.at(node), index_map.at(neighbor));
+		else if (AT(on_stack, neighbor)) {
+			AT(lowlink_map, node) = min(AT(lowlink_map, node), AT(index_map, neighbor));
 		}
 	}
 
-	if (lowlink_map.at(node) == index_map.at(node)) {
+	if (AT(lowlink_map, node) == AT(index_map, node)) {
 		scc_nodes.emplace_back(vector<size_t>{});
 
 		size_t w = S.top();
 		do {
 			w = S.top();
 			S.pop();
-			on_stack.at(w) = false;
+			AT(on_stack, w) = false;
 
-			scc_map.at(w) = scc_count;
-			scc_nodes.at(scc_count).emplace_back(w);
+			AT(scc_map, w) = scc_count;
+			AT(scc_nodes, scc_count).emplace_back(w);
 		} while (w != node);
 		
 		++scc_count;
@@ -359,11 +365,11 @@ void GameGraphSolver::tarjan_undetermined_nodes(size_t& scc_count,
 
 	scc_count = 0;
 	for (size_t node = 0; node < num_nodes_; ++node) {
-		if (types_.at(node) != PT::UNDETERMINED) {
+		if (AT(types_, node) != PT::UNDETERMINED) {
 			continue;
 		}
 
-		if (index_map.at(node) < 0) {
+		if (AT(index_map, node) < 0) {
 			tarjan_helper(node, index_map, lowlink_map, S, on_stack, index, scc_count, scc_map, scc_nodes);
 		}
 	}
@@ -371,19 +377,19 @@ void GameGraphSolver::tarjan_undetermined_nodes(size_t& scc_count,
 	scc_adj.resize(scc_count);
 
 	for (size_t node = 0; node < num_nodes_; ++node) {
-		if (types_.at(node) != PT::UNDETERMINED) {
+		if (AT(types_, node) != PT::UNDETERMINED) {
 			continue;
 		}
 
-		size_t node_scc = scc_map.at(node);
-		for (size_t neighbor : adj_.at(node)) {
-			if (types_.at(neighbor) != PT::UNDETERMINED) {
+		size_t node_scc = AT(scc_map, node);
+		for (size_t neighbor : AT(adj_, node)) {
+			if (AT(types_, neighbor) != PT::UNDETERMINED) {
 				continue;
 			}
 
-			size_t neighbor_scc = scc_map.at(neighbor);
+			size_t neighbor_scc = AT(scc_map, neighbor);
 			if (node_scc != neighbor_scc) {
-				scc_adj.at(node_scc).emplace_back(neighbor_scc);
+				AT(scc_adj, node_scc).emplace_back(neighbor_scc);
 			}
 		}
 	}
