@@ -49,9 +49,9 @@ bool is_draw(const PositionBase* position) const;
 其中枚举类 `GameGraphSolver::PositionType` 的所有枚举项及其含义如下：
 
 - **P_POSITION**：当前局面存在后手必胜策略；
-- **PT_POSITION**：当前局面存在后手必不败策略；
+- **PT_POSITION**当前局面无论先后手都存在必不败策略，但先手想要避免败局就必须选择死局；
 - **T_POSITION**：当前局面无论先后手都存在必不败策略；
-- **NT_POSITION**：当前局面存在先手必不败策略；
+- **NT_POSITION**：当前局面无论先后手都存在必不败策略，但后手想要避免败局就必须选择死局；
 - **N_POSITION**：当前局面存在先手必胜策略；
 - **UNDETERMINED**：当前局面没有被染色（请检查是否执行了 `color_graph` 方法）；
 - **INVALID**：当前局面不是游戏中可能出现的局面（请检查局面是否合法，或者是否执行了 `build_graph` 方法）。

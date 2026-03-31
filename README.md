@@ -51,9 +51,9 @@ These methods are self-explanatory: `build_graph` and `color_graph` build and co
 `GameGraphSolver::PositionType` enumerates position types as follows:
 
 - **P_POSITION**: The second player has a guaranteed winning strategy from this position.
-- **PT_POSITION**: The second player has a guaranteed non-losing strategy from this position.
+- **PT_POSITION**: Both players have a guaranteed non-losing strategy from this position, but the first player must choose a deadlock to avoid losing.
 - **T_POSITION**: Both players have a guaranteed non-losing strategy from this position.
-- **NT_POSITION**: The first player has a guaranteed non-losing strategy from this position.
+- **NT_POSITION**: Both players have a guaranteed non-losing strategy from this position, but the second player must choose a deadlock to avoid losing.
 - **N_POSITION**: The first player has a guaranteed winning strategy from this position.
 - **UNDETERMINED**: The position has not been classified yet (make sure to call `color_graph`).
 - **INVALID**: The position is not recognized as a valid position in the game (check position legality or ensure `build_graph` was called).
