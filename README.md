@@ -2,6 +2,8 @@
 
 **[简体中文](README_CN.md)**
 
+> **Note**: The working repository is located at [GitHub](https://github.com/illustager/GameGraphSolver), and repositories on other platforms are read-only mirrors that do not accept PRs.
+
 Not long ago, sageblue asked me a question about a small puzzle game that was popular in our childhood. Since this game involved few legal positions (just over two thousand), I was able to solve it quickly with a brute-force algorithm. In fact, many childhood puzzle games share this property of having a manageable number of legal positions. This inspired me to extract and generalize the components of my work that are not tied to any specific game—perhaps they’ll be useful in the future.
 
 This project processes **perfect-information**,  turn-based games using a **naive** and **deterministic** algorithm. With this tool, you can determine, for any game position, whether there exists a guaranteed winning or non-losing strategy for the first or second player, and also recover such a strategy. It can also detect positions that are deadlocks (i.e., positions that result in perpetual cycles with no possible winner), if such positions exist in the game.
