@@ -1,17 +1,15 @@
 #pragma once
 
-#include "GameGraphPositionBase.h"
-
 #include <iostream>
 
-class Position : public GameGraphPositionBase {
+class Position {
 public:
 	Position() = delete;
 	Position(int curr) : curr(curr) {}
 
 	~Position() = default;
 
-	std::vector<unique_ptr> get_next_positions() const override {		
+	std::vector<std::unique_ptr<Position>> get_next_positions() const {
 		switch (curr) {
 			case 0: return make_position_vector(1, 2, 3);
 			case 1: return make_position_vector(4, 5, 6);
@@ -33,17 +31,16 @@ public:
 		}
 	}
 
-	bool is_terminal() const override {
+	bool is_terminal() const {
 		return curr == 11;
 	}
 
-	bool less(const GameGraphPositionBase* rhs) const override {
-		const Position* pos = dynamic_cast<const Position*>(rhs);
-		return curr < pos->curr;
+	bool operator<(const Position& other) const {
+		return curr < other.curr;
 	}
 
-	static std::vector<unique_ptr> get_starting_positions() {
-		std::vector<unique_ptr> results;
+	static std::vector<std::unique_ptr<Position>> get_starting_positions() {
+		std::vector<std::unique_ptr<Position>> results;
 		results.emplace_back(std::make_unique<Position>(0));
 		return results;
 	}
@@ -55,8 +52,8 @@ public:
 
 private:
 	template<typename... Args>
-	static std::vector<std::unique_ptr<GameGraphPositionBase>> make_position_vector(Args&&... args) {
-		std::vector<std::unique_ptr<GameGraphPositionBase>> v;
+	static std::vector<std::unique_ptr<Position>> make_position_vector(Args&&... args) {
+		std::vector<std::unique_ptr<Position>> v;
 		v.reserve(sizeof...(Args));
 		(v.push_back(std::make_unique<Position>(std::forward<Args>(args))), ...);
 		return v;

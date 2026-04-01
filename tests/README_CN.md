@@ -11,7 +11,13 @@ make run-all
 或者运行单个测试：
 
 ```bash
-make run-test01
+make run-test01-map
+```
+
+清理生成的文件：
+
+```bash
+make clean
 ```
 
 ## 测试用例描述

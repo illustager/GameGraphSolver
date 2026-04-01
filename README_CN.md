@@ -10,21 +10,35 @@
 
 可以参考 [tests/](tests/) 目录下给出的测试用例和说明文档。
 
-首先，根据具体的游戏，定义一个 `GameGraphPositionBase` 的派生类（假设是 `CustomPosition`），并重载以下纯虚方法。这个派生类用于实现对游戏中局面的建模，因此它必须包含所有能够确定一个游戏局面的信息。不等值的 `CustomPosition` 实例对应游戏中的不同局面；相等的实例则表示相同的局面。
+### CustomPosition
+
+根据具体的游戏，定义一个包含以下方法的类（假设是 `CustomPosition`）。这个类用于实现对游戏中局面的建模，因此它必须包含所有能够确定一个游戏局面的信息。不等值的 `CustomPosition` 实例对应游戏中的不同局面；相等的实例则表示相同的局面。
 
 ```c++
-virtual std::vector<std::unique_ptr<GameGraphPositionBase>> get_next_positions() const = 0;
-virtual bool is_terminal() const = 0;
-virtual bool less(const GameGraphPositionBase* rhs) const = 0;
+// 返回当前局面在一回合行动后可以到达的所有局面
+std::vector<std::unique_ptr<CustomPosition>> get_next_positions() const = 0;
+// 判断当前局面是否为游戏终局
+bool is_terminal() const = 0;
+// 返回所有可能的游戏开始局面
+static std::vector<std::unique_ptr<CustomPosition>> get_starting_positions();
 ```
 
-此外，还建议用户定义类似于下面的静态函数或常量用于提供游戏的开始局面，因为它们通常是固定的。
+此外，在 `GameGraphSolver` 会使用以 `CustomPosition` 实例为键的映射表，有 `std::map` 和 `std::unordered_map` 两种选择。如果你希望它使用 `std::unordered_map`，则需要定义/重载以下方法/运算符：
 
 ```c++
-static std::vector<std::unique_ptr<GameGraphPositionBase>> get_starting_positions();
+bool operator==(const CustomPosition& other) const;
+std::size_t hash() const;
 ```
 
-`GameGraphSolver` 则提供以下方法：
+相反，如果你希望它使用 `std::map`，则需要：
+
+```c++
+bool operator<(const CustomPosition& other) const;
+```
+
+### GameGraphSolver
+
+`GameGraphSolver` 提供以下方法：
 
 ```c++
 using PositionBase			= GameGraphPositionBase;
@@ -83,19 +97,5 @@ bool is_draw(const PositionBase* position) const;
 - 存在自环。
 
 我认为上述染色法是良定义，但我不知道如何用严格的数学语言证明它；我只能给一个简单的陈述：考察由全部 Undefined-Position 导出的子图 $G'$。显然 $G'$ 中不存在出度为 0 的点，所以 $G'$ 要么为空，要么存在 NTSSCC。而根据 Def. 4.，$G'$ 中不可能存在 NTSSCC，因此 $G'$ 为空。
-
-## To-do
-
-To-do list:
-
-- `GameGraphSolver` 中用户可以选择使用 `std::map` 还是 `std::unordered_map` 建立 Position 实例指针到实例序号的索引；
-- 每次染色 SCC 时，不对整个 Undefined-Position 导出的子图缩点，只对发生变化的 SCC 导出的子图缩点。
-
-
-
-
-
-
-
 
 

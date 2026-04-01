@@ -12,19 +12,33 @@ This project processes **perfect-information**,  turn-based games using a **naiv
 
 See the [tests/](tests/) directory there for usage examples.
 
-To use this library, define a subclass of `GameGraphPositionBase` that models the positions of your specific game (for example, `CustomPosition`), and override the following pure virtual methods. Each instance of your subclass should represent a unique game state: unequal instances represent different positions; equal instances, the same position.
+### CustomPosition
+
+To use this library, define a class that models the positions of your specific game (for example, `CustomPosition`), and implement the following methods. Each instance of your class should represent a unique game state: unequal instances represent different positions; equal instances, the same position.
 
 ```c++
-virtual std::vector<std::unique_ptr<GameGraphPositionBase>> get_next_positions() const = 0;
-virtual bool is_terminal() const = 0;
-virtual bool less(const GameGraphPositionBase* rhs) const = 0;
+// Returns all positions reachable from the current position in one move
+std::vector<std::unique_ptr<CustomPosition>> get_next_positions() const;
+// Determines whether the current position is a terminal position
+bool is_terminal() const;
+// Returns all possible starting positions of the game
+static std::vector<std::unique_ptr<CustomPosition>> get_starting_positions();
 ```
 
-Additionally, it’s recommended to provide a static method or constant that supplies the initial game position(s), since these are usually fixed:
+Additionally, `GameGraphSolver` uses a mapping from `CustomPosition` instances to position IDs, using either `std::map` or `std::unordered_map`. If you want to use `std::unordered_map`, you need to define/overload the following methods/operators:
 
 ```c++
-static std::vector<std::unique_ptr<GameGraphPositionBase>> get_starting_positions();
+bool operator==(const CustomPosition& other) const;
+std::size_t hash() const;
 ```
+
+Conversely, if you want to use `std::map`, then:
+
+```c++
+bool operator<(const CustomPosition& other) const;
+```
+
+### GameGraphSolver
 
 `GameGraphSolver` provides the following methods:
 
@@ -84,10 +98,3 @@ Here, an NTSSCC is a sink strongly connected component that:
 - Contains a self-loop.
 
 I believe this classification is well-defined, although I do not have a rigorous proof; intuitively: in the subgraph $G'$ of Undefined-Positions, there are no nodes with out-degree 0, so $G'$ is either empty or contains at least one NTSSCC. By Def. 4. above, $G'$ cannot contain any NTSSCC, so it must be empty.
-
-## To-do
-
-Planned improvements:
-
-- In `GameGraphSolver`, allow the user to choose between `std::map` and `std::unordered_map` to map position pointers to instance IDs;
-- When classifying SCCs, only condense those SCCs whose content has changed, rather than the full subgraph induced by all Undefined-Positions.
