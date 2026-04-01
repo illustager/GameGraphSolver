@@ -7,10 +7,19 @@
 #include <optional>
 #include <iostream>
 #include <queue>
+#include <type_traits>
+#include <concepts>
+#include <unordered_map>
 
 template<typename T>
 concept LessComparable = requires(const T& a, const T& b) {
 	{ a < b } -> std::convertible_to<bool>;
+};
+
+template<typename T>
+concept Hashable = requires(const T& a, const T& b) {
+	{ a == b } -> std::convertible_to<bool>;
+	{ a.hash() } -> std::convertible_to<std::size_t>;
 };
 
 template<typename T>
@@ -21,7 +30,7 @@ concept PositionConcept = requires(const T& pos) {
 };
 
 template<typename Position>
-	requires PositionConcept<Position> && LessComparable<Position>
+	requires PositionConcept<Position> && (LessComparable<Position> || Hashable<Position>)
 class GameGraphSolver {
 	struct Less {
 		bool operator()(const Position* lhs, const Position* rhs) const {
@@ -29,9 +38,23 @@ class GameGraphSolver {
 		}
 	};
 
+	struct Hash {
+		std::size_t operator()(const Position* pos) const {
+			return pos->hash();
+		}
+	};
+
+	struct Equal {
+		bool operator()(const Position* lhs, const Position* rhs) const {
+			return *lhs == *rhs;
+		}
+	};
+
 	using PositionUniquePtr = std::unique_ptr<Position>;
 	template<typename T>
-	using PositionMap = std::map<const Position*, T, Less>;
+	using PositionMap = std::conditional_t<Hashable<Position>,
+										   std::unordered_map<const Position*, T, Hash, Equal>,
+										   std::map<const Position*, T, Less>>;
 public:
 	enum class PositionType {
 		P_POSITION,
