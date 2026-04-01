@@ -1,8 +1,8 @@
-CXXFLAGS = -std=c++17 -Wall -O2
-INCLUDES = -I. -I..
+CXXFLAGS = -std=c++20 -Wall -Wextra -O2
+INCLUDES_DIR = ..
+INCLUDES = $(addprefix -I, $(INCLUDES_DIR))
 
-SRC_DIR = ..
-SRCS := *.cpp $(SRC_DIR)/*.cpp
+SRCS := *.cpp
 
 TEST_DIR = .
 TEST_NAMES := $(notdir $(wildcard $(TEST_DIR)/test*))
@@ -19,7 +19,7 @@ all: $(BINARIES)
 $(BIN_DIR) $(OUT_DIR):
 	mkdir -p $@
 
-$(BIN_DIR)/%: $(SRCS) $(TEST_DIR)/%/* | $(BIN_DIR)
+$(BIN_DIR)/%: $(SRCS) $(INCLUDES_DIR)/* $(TEST_DIR)/%/* | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -I$(TEST_DIR)/$* $(SRCS) -o $@
 
 $(OUT_DIR)/%.txt: $(BIN_DIR)/% | $(OUT_DIR)

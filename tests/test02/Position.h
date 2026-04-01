@@ -1,41 +1,38 @@
 #pragma once
 
-#include "GameGraphPositionBase.h"
-
 #include <iostream>
 
 template<unsigned N, unsigned M>
-class TPosition : public GameGraphPositionBase {
+class TPosition {
 public:
 	TPosition() = delete;
 	TPosition(int curr) : curr(curr) {}
 
 	~TPosition() = default;
 
-	std::vector<unique_ptr> get_next_positions() const override {
-		std::vector<unique_ptr> results;
+	std::vector<std::unique_ptr<TPosition<N, M>>> get_next_positions() const {
+		std::vector<std::unique_ptr<TPosition<N, M>>> results;
 		for (unsigned i = 1; i <= N; ++i) {
 			unsigned next = curr + i;
 			if (next > M + 1) {
 				break;
 			}
-			results.emplace_back(std::make_unique<TPosition>(next));
+			results.emplace_back(std::make_unique<TPosition<N, M>>(next));
 		}
 		return results;
 	}
 
-	bool is_terminal() const override {
+	bool is_terminal() const {
 		return curr >= M + 1;
 	}
 
-	bool less(const GameGraphPositionBase* rhs) const override {
-		const TPosition* pos = dynamic_cast<const TPosition*>(rhs);
-		return curr < pos->curr;
+	bool operator<(const TPosition& other) const {
+		return curr < other.curr;
 	}
 
-	static std::vector<unique_ptr> get_starting_positions() {
-		std::vector<unique_ptr> results;
-		results.emplace_back(std::make_unique<TPosition>(1));
+	static std::vector<std::unique_ptr<TPosition<N, M>>> get_starting_positions() {
+		std::vector<std::unique_ptr<TPosition<N, M>>> results;
+		results.emplace_back(std::make_unique<TPosition<N, M>>(1));
 		return results;
 	}
 

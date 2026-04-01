@@ -2,11 +2,11 @@
 
 using namespace std;
 
-#include "GameGraphSolver.h"
+#include "GameGraphSolver.hpp"
 #include "Position.h"
 
 int main() {
-	GameGraphSolver graph;
+	GameGraphSolver<Position> graph;
 
 	graph.build_graph(Position::get_starting_positions());
 	graph.color_graph();

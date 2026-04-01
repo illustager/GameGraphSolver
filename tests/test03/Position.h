@@ -1,14 +1,12 @@
 #pragma once
 
-#include "GameGraphPositionBase.h"
 #include "unordered_pair.h"
 
 #include <array>
 #include <iostream>
 #include <utility>
-#include <iostream>
 
-class Position : public GameGraphPositionBase {
+class Position {
 public:
 	using PlayerState = unordered_pair<int>;
 
@@ -20,11 +18,11 @@ public:
 	Position(PlayerState&& p, PlayerState&& o)
 		: player(std::forward<PlayerState>(p)), opponent(std::forward<PlayerState>(o)) {}
 
-	std::vector<unique_ptr> get_next_positions() const override {
-		std::vector<unique_ptr> results;
+	std::vector<std::unique_ptr<Position>> get_next_positions() const {
+		std::vector<std::unique_ptr<Position>> results;
 		for (int move_id = 0; move_id < 4; ++move_id) {
 			bool is_valid;
-			unique_ptr r = make_move(move_id, is_valid);
+			std::unique_ptr<Position> r = make_move(move_id, is_valid);
 			if (is_valid) {
 				results.emplace_back(std::move(r));
 			}
@@ -32,23 +30,22 @@ public:
 		return results;
 	}
 
-	bool is_terminal() const override {
+	bool is_terminal() const {
 		return opponent.to_pair() == std::pair<int, int>{0, 0};
 	}
 
-	bool less(const GameGraphPositionBase* rhs) const override {
-		const Position* pos = dynamic_cast<const Position*>(rhs);
-		if (player.to_pair() != pos->player.to_pair()) {
-			return player.to_pair() < pos->player.to_pair();
+	bool operator<(const Position& other) const {
+		if (player.to_pair() != other.player.to_pair()) {
+			return player.to_pair() < other.player.to_pair();
 		}
 		else {
-			return opponent.to_pair() < pos->opponent.to_pair();
+			return opponent.to_pair() < other.opponent.to_pair();
 		}
 	}
 
-	static std::vector<unique_ptr> get_starting_positions() {
-		std::vector<unique_ptr> results;
-		results.emplace_back(new Position{{1, 1}, {1, 1}});
+	static std::vector<std::unique_ptr<Position>> get_starting_positions() {
+		std::vector<std::unique_ptr<Position>> results;
+		results.emplace_back(std::make_unique<Position>(PlayerState{1, 1}, PlayerState{1, 1}));
 		return results;
 	}
 
@@ -67,7 +64,7 @@ public:
 	}
 
 private:
-	unique_ptr make_move(int move_id, bool& is_valid) const {
+	std::unique_ptr<Position> make_move(int move_id, bool& is_valid) const {
 		is_valid = true;
 		PlayerState new_player = player;
 		PlayerState new_opponent = opponent;
