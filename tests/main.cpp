@@ -8,14 +8,13 @@ using namespace std;
 int main() {
 	GameGraphSolver<Position> graph;
 
-	graph.build_graph(Position::get_starting_positions());
+	graph.build_graph();
 	graph.color_graph();
 
 	auto positions = graph.get_positions();
 	for (auto pos : positions) {
-		const Position* dpos = dynamic_cast<const Position*>(pos);
-		cout << *dpos << " ==> " << graph.get_position_type(dpos)
-		     << '\t' << graph.is_draw(dpos) << endl;
+		cout << *pos << " ==> " << graph.get_position_type(pos)
+		     << '\t' << graph.is_draw(pos) << endl;
 	}
 
 	return 0;

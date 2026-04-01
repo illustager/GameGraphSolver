@@ -63,7 +63,7 @@ public:
 	GameGraphSolver() = default;
 	~GameGraphSolver() = default;
 
-	void build_graph(std::vector<PositionUniquePtr> starting_positions);
+	void build_graph();
 	void color_graph();
 
 	PT get_position_type(const Position& pos) const;
@@ -209,8 +209,9 @@ std::optional<std::size_t> GameGraphSolver<Position>::index_of(const Position* p
 }
 
 template<typename Position>
-void GameGraphSolver<Position>::build_graph(std::vector<PositionUniquePtr> starting_positions) {
+void GameGraphSolver<Position>::build_graph() {
 	std::queue<std::size_t> q;
+	std::vector<PositionUniquePtr> starting_positions = Position::get_starting_positions();
 
 	for (auto& pos : starting_positions) {
 		bool is_new_node;
