@@ -84,7 +84,7 @@ bool is_draw(const PositionBase* position) const;
 2. 邻接 P-Position 的节点是 N-Position；
 3. 邻接且只邻接 N-Position 的节点是 P-Position；
 
-而当这个有限的有向图中有环时，就**可能**有一些点无法被上述染色法定义（记作 Undefined-Position）。不难发现，由全部 Undefined-Position 导出的子图中一定存在 NTSSCC（Non‑trivial Sink SCC，非平凡汇强连通分量）。只需要补充如下定义，就可以消除所有 Undefined-Position：
+而当这个有限的有向图中有环时，就**可能**有一些点无法被上述染色法定义（记作 Undefined-Position）。不难发现，由全部 Undefined-Position 导出的子图中一定存在 NTSSCC（Non‑Trivial Sink SCC，非平凡汇强连通分量）。只需要补充如下定义，就可以消除所有 Undefined-Position：
 
 4. 由全部 Undefined-Position 导出的子图中的 NTSSCC 上的点是 T-Position；
 5. 邻接且只邻接 T-Position 的节点是 T-Position；
@@ -96,6 +96,6 @@ bool is_draw(const PositionBase* position) const;
 - 节点数不为 1；或
 - 存在自环。
 
-我认为上述染色法是良定义，但我不知道如何用严格的数学语言证明它；我只能给一个简单的陈述：考察由全部 Undefined-Position 导出的子图 $G'$。显然 $G'$ 中不存在出度为 0 的点，所以 $G'$ 要么为空，要么存在 NTSSCC。而根据 Def. 4.，$G'$ 中不可能存在 NTSSCC，因此 $G'$ 为空。
+我认为上述染色法是良定义，但我不知道如何用严格的数学语言证明它；我只能给一个简单的陈述：考察由全部 Undefined-Position 导出的子图 $G'$。显然 $G'$ 中不存在出度为 0 的点，所以 $G'$ 要么为空，要么存在 NTSSCC。而根据 Def. 4.， $G'$ 中不可能存在 NTSSCC，因此 $G'$ 为空。
 
 
