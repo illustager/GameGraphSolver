@@ -12,7 +12,7 @@ This project processes **perfect-information**,  turn-based games using a **naiv
 
 See the [tests/](tests/) directory there for usage examples.
 
-### CustomPosition
+### Defining a Position Class
 
 To use this library, define a class that models the positions of your specific game (for example, `CustomPosition`), and implement the following methods. Each instance of your class should represent a unique game state: unequal instances represent different positions; equal instances, the same position.
 
@@ -40,26 +40,45 @@ bool operator<(const CustomPosition& other) const;
 
 ### GameGraphSolver
 
-`GameGraphSolver` provides the following methods:
+The public interface and requirements of `GameGraphSolver` are as follows:
 
 ```c++
-using PositionBase            = GameGraphPositionBase;
-using PositionBaseUniquePtr   = std::unique_ptr<PositionBase>;
-using PT                      = GameGraphSolver::PositionType;
-  
-void build_graph(std::vector<PositionBaseUniquePtr> starting_positions);
-void color_graph();
-  
-PT get_position_type(const PositionBase& pos) const;
-PT get_position_type(const PositionBase* pos) const;
-  
-std::vector<const PositionBase*> get_positions() const;
-std::vector<const PositionBase*> get_terminals() const;
-std::vector<const PositionBase*> get_adjacent_positions(const PositionBase& pos) const;
-std::vector<const PositionBase*> get_adjacent_positions(const PositionBase* pos) const;
-  
-bool is_draw(const PositionBase& position) const;
-bool is_draw(const PositionBase* position) const;
+template<typename T>
+concept LessComparable = requires(const T& a, const T& b) {
+	{ a < b } -> std::convertible_to<bool>;
+};
+
+template<typename T>
+concept Hashable = requires(const T& a, const T& b) {
+	{ a == b } -> std::convertible_to<bool>;
+	{ a.hash() } -> std::convertible_to<std::size_t>;
+};
+
+template<typename T>
+concept PositionConcept = requires(const T& pos) {
+	{ T::get_starting_positions() } -> std::convertible_to<std::vector<std::unique_ptr<T>>>;
+	{ pos.get_next_positions() } -> std::convertible_to<std::vector<std::unique_ptr<T>>>;
+	{ pos.is_terminal() } -> std::convertible_to<bool>;
+};
+
+template<typename Position>
+	requires PositionConcept<Position> && (LessComparable<Position> || Hashable<Position>)
+class GameGraphSolver {
+public:
+	void build_graph();
+	void color_graph();
+
+	PT get_position_type(const Position& pos) const;
+	PT get_position_type(const Position* pos) const;
+
+	std::vector<const Position*> get_positions() const;
+	std::vector<const Position*> get_terminals() const;
+	std::vector<const Position*> get_adjacent_positions(const Position& pos) const;
+	std::vector<const Position*> get_adjacent_positions(const Position* pos) const;
+
+	bool is_draw(const Position& position) const;
+	bool is_draw(const Position* position) const;
+};
 ```
 
 These methods are self-explanatory: `build_graph` and `color_graph` build and color the game graph. Afterward, `get_position_type` returns the type of a position, `is_draw` checks whether a position is a deadlock, `get_positions` returns all possible positions, `get_terminals()` returns terminal positions, and `get_adjacent_positions` returns all positions reachable in a single move from the given position.

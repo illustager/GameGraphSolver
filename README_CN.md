@@ -10,7 +10,7 @@
 
 可以参考 [tests/](tests/) 目录下给出的测试用例和说明文档。
 
-### CustomPosition
+### 定义 Position 类
 
 根据具体的游戏，定义一个包含以下方法的类（假设是 `CustomPosition`）。这个类用于实现对游戏中局面的建模，因此它必须包含所有能够确定一个游戏局面的信息。不等值的 `CustomPosition` 实例对应游戏中的不同局面；相等的实例则表示相同的局面。
 
@@ -38,26 +38,45 @@ bool operator<(const CustomPosition& other) const;
 
 ### GameGraphSolver
 
-`GameGraphSolver` 提供以下方法：
+`GameGraphSolver` 的模板参数和公共方法如下：
 
 ```c++
-using PositionBase			= GameGraphPositionBase;
-using PositionBaseUniquePtr	= std::unique_ptr<PositionBase>;
-using PT					= GameGraphSolver::PositionType;
+template<typename T>
+concept LessComparable = requires(const T& a, const T& b) {
+	{ a < b } -> std::convertible_to<bool>;
+};
 
-void build_graph(std::vector<PositionBaseUniquePtr> starting_positions);
-void color_graph();
+template<typename T>
+concept Hashable = requires(const T& a, const T& b) {
+	{ a == b } -> std::convertible_to<bool>;
+	{ a.hash() } -> std::convertible_to<std::size_t>;
+};
 
-PT get_position_type(const PositionBase& pos) const;
-PT get_position_type(const PositionBase* pos) const;
+template<typename T>
+concept PositionConcept = requires(const T& pos) {
+	{ T::get_starting_positions() } -> std::convertible_to<std::vector<std::unique_ptr<T>>>;
+	{ pos.get_next_positions() } -> std::convertible_to<std::vector<std::unique_ptr<T>>>;
+	{ pos.is_terminal() } -> std::convertible_to<bool>;
+};
 
-std::vector<const PositionBase*> get_positions() const;
-std::vector<const PositionBase*> get_terminals() const;
-std::vector<const PositionBase*> get_adjacent_positions(const PositionBase& pos) const;
-std::vector<const PositionBase*> get_adjacent_positions(const PositionBase* pos) const;
+template<typename Position>
+	requires PositionConcept<Position> && (LessComparable<Position> || Hashable<Position>)
+class GameGraphSolver {
+public:
+	void build_graph();
+	void color_graph();
 
-bool is_draw(const PositionBase& position) const;
-bool is_draw(const PositionBase* position) const;
+	PT get_position_type(const Position& pos) const;
+	PT get_position_type(const Position* pos) const;
+
+	std::vector<const Position*> get_positions() const;
+	std::vector<const Position*> get_terminals() const;
+	std::vector<const Position*> get_adjacent_positions(const Position& pos) const;
+	std::vector<const Position*> get_adjacent_positions(const Position* pos) const;
+
+	bool is_draw(const Position& position) const;
+	bool is_draw(const Position* position) const;
+};
 ```
 
 这些方法应该顾名思义：`build_graph` 和 `color_graph` 完成建图和染色。在完成建图和染色后，`get_position_type` 返回局面类型，`is_draw` 判断一个局面是否意味着死局，`get_positions` 返回所有可能出现的局面，`get_terminals()` 返回游戏终局，`get_adjacent_positions` 返回一个局面在一回合行动后可以到达的所有局面。
