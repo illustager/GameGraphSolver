@@ -131,20 +131,20 @@ private:
 								   std::vector<std::vector<std::size_t>>& scc_adj) const;
 
 private:
-	std::size_t														num_nodes_;
-	std::vector<PositionUniquePtr>									nodes_;
-	PositionMap<std::size_t>										node_indices_;
-	std::vector<std::size_t>										terminals_;
-	std::vector<std::vector<std::size_t>>							adj_;
-	std::vector<std::vector<std::size_t>>							rev_adj_;
-	std::vector<std::size_t>										num_n_children;
-	std::vector<std::size_t>										num_t_children;
-	std::vector<std::size_t>										num_nt_children;
-	std::vector<bool>												has_p_child;
-	std::vector<bool>												has_pt_child;
-	std::vector<PositionType>										types_;
-	std::vector<bool>												is_draw_;
-	std::vector<bool>												has_self_loop_;
+	std::size_t									num_nodes_;
+	std::vector<PositionUniquePtr>				nodes_;
+	PositionMap<std::size_t>					node_indices_;
+	std::vector<std::size_t>					terminals_;
+	std::vector<std::vector<std::size_t>>		adj_;
+	std::vector<std::vector<std::size_t>>		rev_adj_;
+	std::vector<std::size_t>					num_n_children_;
+	std::vector<std::size_t>					num_t_children_;
+	std::vector<std::size_t>					num_nt_children_;
+	std::vector<bool>							has_p_child_;
+	std::vector<bool>							has_pt_child_;
+	std::vector<PositionType>					types_;
+	std::vector<bool>							is_draw_;
+	std::vector<bool>							has_self_loop_;
 };
 
 #ifdef NDEBUG
@@ -267,11 +267,11 @@ void GameGraphSolver<Position>::build_graph() {
 	num_nodes_ = nodes_.size();
 	adj_.resize(num_nodes_);
 	rev_adj_.resize(num_nodes_);
-	num_n_children.resize(num_nodes_, 0);
-	num_t_children.resize(num_nodes_, 0);
-	num_nt_children.resize(num_nodes_, 0);
-	has_p_child.resize(num_nodes_, false);
-	has_pt_child.resize(num_nodes_, false);
+	num_n_children_.resize(num_nodes_, 0);
+	num_t_children_.resize(num_nodes_, 0);
+	num_nt_children_.resize(num_nodes_, 0);
+	has_p_child_.resize(num_nodes_, false);
+	has_pt_child_.resize(num_nodes_, false);
 	types_.resize(num_nodes_, PT::UNDETERMINED);
 	is_draw_.resize(num_nodes_, false);
 	has_self_loop_.resize(num_nodes_, false);
@@ -360,9 +360,9 @@ void GameGraphSolver<Position>::color_by_basic_rules() {
 				q.emplace(parent);
 			}
 			else { // node is N-POSITION
-				AT(num_n_children, parent) += 1;
+				AT(num_n_children_, parent) += 1;
 
-				if (AT(num_n_children, parent) == AT(adj_, parent).size()) {
+				if (AT(num_n_children_, parent) == AT(adj_, parent).size()) {
 					AT(types_, parent) = PT::P_POSITION;
 					q.emplace(parent);
 				}
@@ -376,13 +376,13 @@ void GameGraphSolver<Position>::color_node_in_trivial_sink_scc(std::size_t node,
 	if (AT(adj_, node).empty()) {
 		;
 	}
-	else if (AT(num_t_children, node) == AT(adj_, node).size()) {
+	else if (AT(num_t_children_, node) == AT(adj_, node).size()) {
 		AT(types_, node) = PT::T_POSITION;
 		q.emplace(node);
 	}
-	else if (AT(num_t_children, node)
-	       + AT(num_nt_children, node)
-		   + AT(num_n_children, node) == AT(adj_, node).size()) {
+	else if (AT(num_t_children_, node)
+	       + AT(num_nt_children_, node)
+		   + AT(num_n_children_, node) == AT(adj_, node).size()) {
 		AT(types_, node) = PT::PT_POSITION;
 		q.emplace(node);
 	}
@@ -444,20 +444,20 @@ bool GameGraphSolver<Position>::color_by_extended_rules(bool t_positions_are_dra
 			}
 			else {	// node is T-POSITION or NT-POSITION
 				if (AT(types_, node) == PT::T_POSITION) {
-					AT(num_t_children, parent) += 1;
+					AT(num_t_children_, parent) += 1;
 				}
 				else {
-					AT(num_nt_children, parent) += 1;
+					AT(num_nt_children_, parent) += 1;
 				}
 
-				if (AT(num_t_children, parent) == AT(adj_, parent).size()) {
+				if (AT(num_t_children_, parent) == AT(adj_, parent).size()) {
 					AT(types_, parent) = PT::T_POSITION;
 					q.emplace(parent);
 					changed = true;
 				}
-				else if (AT(num_t_children, parent)
-				       + AT(num_nt_children, parent)
-					   + AT(num_n_children, parent) == AT(adj_, parent).size()) {
+				else if (AT(num_t_children_, parent)
+				       + AT(num_nt_children_, parent)
+					   + AT(num_n_children_, parent) == AT(adj_, parent).size()) {
 					AT(types_, parent) = PT::PT_POSITION;
 					q.emplace(parent);
 					changed = true;
@@ -518,9 +518,9 @@ void GameGraphSolver<Position>::tarjan_helper(std::size_t node,
 
 template<typename Position>
 void GameGraphSolver<Position>::tarjan_undetermined_nodes(std::size_t& scc_count,
-															  std::vector<std::size_t>& scc_map,
-															  std::vector<std::vector<std::size_t>>& scc_nodes,
-															  std::vector<std::vector<std::size_t>>& scc_adj) const {
+														  std::vector<std::size_t>& scc_map,
+														  std::vector<std::vector<std::size_t>>& scc_nodes,
+														  std::vector<std::vector<std::size_t>>& scc_adj) const {
 	std::vector<int> 	index_map(num_nodes_, -1);
 	std::vector<int> 	lowlink_map(num_nodes_, -1);
 	std::stack<std::size_t>	S;
