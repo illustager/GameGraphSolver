@@ -31,7 +31,7 @@ concept PositionConcept = requires(const T& pos) {
 
 template<typename Position>
 	requires PositionConcept<Position> && (LessComparable<Position> || Hashable<Position>)
-class GameGraphSolver {
+class GameGraphSolver final {
 	struct Less {
 		bool operator()(const Position* lhs, const Position* rhs) const {
 			return *lhs < *rhs;
